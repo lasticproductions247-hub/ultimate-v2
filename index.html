@@ -315,17 +315,17 @@
 <section class="hero">
   <div class="hero-grid" aria-hidden="true"></div>
   <div class="wrap hero-in">
-    <div class="kicker"><i aria-hidden="true"></i> 3 of 7 modules live</div>
+    <div class="kicker"><i aria-hidden="true"></i> <span id="k-live">0</span> of <span id="k-all">0</span> modules live</div>
     <h1>THE <span class="grad">ULTIMATE</span></h1>
     <p class="lede">
-      A seven-module platform built from scratch. Each module is a complete, standalone
+      A six-module platform built from scratch. Each module is a complete, standalone
       application &mdash; <b>live today</b> and ready to use, no signup required, no data
-      collected. Three are live now; four more are in the build.
+      collected. <span id="lede-live">Two are live now</span>; the rest are in the build.
     </p>
     <div class="stats">
-      <div class="stat"><b>7</b><span>Modules</span></div>
-      <div class="stat live"><b>3</b><span>Live now</span></div>
-      <div class="stat soon"><b>4</b><span>In build</span></div>
+      <div class="stat"><b id="s-all">0</b><span>Modules</span></div>
+      <div class="stat live"><b id="s-live">0</b><span>Live now</span></div>
+      <div class="stat soon"><b id="s-soon">0</b><span>In build</span></div>
       <div class="stat"><b>0</b><span>Data collected</span></div>
     </div>
   </div>
@@ -335,7 +335,7 @@
 <main class="sec wrap">
   <div class="sec-head">
     <h2>Modules</h2>
-    <p>03 live &mdash; 04 in development</p>
+    <p><span id="sec-live">0</span> live &mdash; <span id="sec-soon">0</span> in development</p>
   </div>
   <div class="mods" id="mods"></div>
 </main>
@@ -399,15 +399,49 @@ var MODULES = [
     url: 'https://lasticproductions247-hub.github.io/bg-eraser-imgly/',
     accent: 'rgba(45, 212, 160, .40)'
   },
-  { id: 'm3', num: '04', title: 'Module Four', desc: 'Fourth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(56, 189, 248, .28)' },
-  { id: 'm4', num: '05', title: 'Module Five', desc: 'Fifth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(255, 180, 84, .28)' },
-  { id: 'm5', num: '06', title: 'Module Six', desc: 'Sixth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(157, 190, 141, .26)' },
-  { id: 'm6', num: '07', title: 'Module Seven', desc: 'Seventh module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(244, 114, 182, .28)' }
+  { id: 'm4', num: '04', title: 'Module Four', desc: 'Fourth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(255, 180, 84, .28)' },
+  { id: 'm5', num: '05', title: 'Module Five', desc: 'Fifth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(157, 190, 141, .26)' },
+  { id: 'm6', num: '06', title: 'Module Six', desc: 'Sixth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(244, 114, 182, .28)' }
 ];
 
 
 (function () {
   'use strict';
+
+  /* ---------- registry validation: never render a broken module set ----------
+     Duplicate ids or numbers are silently dropped by the browser when used as
+     DOM keys, which is how a module card vanished once. Fail loudly instead. */
+  function validateModules(list) {
+    var seenId = {}, seenNum = {}, seenUrl = {}, errs = [];
+
+    list.forEach(function (m, i) {
+      var tag = 'modules[' + i + '] "' + (m.id || '?') + '"';
+      if (!m.id)                     errs.push(tag + ' is missing an id');
+      else if (seenId[m.id])        errs.push(tag + ' duplicates id "' + m.id + '"');
+      else seenId[m.id] = true;
+
+      if (m.num != null) {
+        var n = String(m.num);
+        if (seenNum[n])              errs.push(tag + ' duplicates number "' + n + '"');
+        else seenNum[n] = true;
+      }
+      if (m.status !== 'live' && m.status !== 'soon')
+        errs.push(tag + ' has invalid status "' + m.status + '" (use live|soon)');
+      if (m.status === 'live') {
+        if (!m.url)                 errs.push(tag + ' is live but has no url');
+        else if (seenUrl[m.url])    errs.push(tag + ' reuses url "' + m.url + '"');
+        else seenUrl[m.url] = true;
+      }
+      if (!m.accent)                 errs.push(tag + ' is missing an accent colour');
+    });
+
+    if (errs.length) {
+      throw new Error('MODULE REGISTRY INVALID\n' + errs.map(function (e) {
+        return '  - ' + e;
+      }).join('\n'));
+    }
+    return true;
+  }
 
   var grid = document.getElementById('mods');
   var win = document.getElementById('appwin');
@@ -422,7 +456,8 @@ var MODULES = [
   }
 
   /* ---------- render the grid ---------- */
-  grid.innerHTML = MODULES.map(function (m) {
+    validateModules(MODULES);
+    grid.innerHTML = MODULES.map(function (m) {
     var live = m.status === 'live';
 
     var plate = live
@@ -484,6 +519,21 @@ var MODULES = [
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !win.hidden) closeApp();
   });
+
+  /* ---------- counts, derived from the registry so copy never drifts ---------- */
+  var liveN = MODULES.filter(function (m) { return m.status === 'live'; }).length;
+  var soonN = MODULES.length - liveN;
+  var words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+
+  function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+  set('k-all', MODULES.length);
+  set('k-live', liveN);
+  set('s-all', MODULES.length);
+  set('s-live', liveN);
+  set('s-soon', soonN);
+  set('sec-live', liveN);
+  set('sec-soon', soonN);
+  set('lede-live', (words[liveN] || liveN) + (liveN === 1 ? ' is live now' : ' are live now'));
 
   /* ---------- footer year ---------- */
   document.getElementById('yr').textContent = new Date().getFullYear();
