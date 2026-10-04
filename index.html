@@ -373,10 +373,21 @@ var MODULES = [
     desc: 'A darkroom-grade image converter. Batch-converts PNG, JPEG and WEBP with resize, quality and flatten controls — decoded and encoded entirely in your browser. Nothing is uploaded, nothing is stored.',
     tags: ['Canvas 2D', 'JSZip', 'Client-side', 'Zero backend'],
     status: 'live',
+    mark: 'WPA<b>.</b>',
     url: 'https://lasticproductions247-hub.github.io/wpa-image-converter/',
     accent: 'rgba(255, 75, 33, .40)'
   },
-  { id: 'm2', num: '02', title: 'Module Two', desc: 'Second module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(168, 85, 247, .30)' },
+  {
+    id: 'bge',
+    num: '02',
+    title: 'BG Eraser — On-Device Background Removal',
+    desc: 'Real AI background removal that runs entirely in your browser. MODNet or RMBG-1.4 via ONNX Runtime Web — your image is never uploaded, no API key, works offline once cached.',
+    tags: ['ONNX', 'WebAssembly', 'transformers.js', 'Zero backend'],
+    status: 'live',
+    mark: 'BG<b>.</b>',
+    url: 'https://lasticproductions247-hub.github.io/bg-eraser/',
+    accent: 'rgba(232, 85, 58, .42)'
+  },
   { id: 'm3', num: '03', title: 'Module Three', desc: 'Third module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(56, 189, 248, .28)' },
   { id: 'm4', num: '04', title: 'Module Four', desc: 'Fourth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(255, 180, 84, .28)' },
   { id: 'm5', num: '05', title: 'Module Five', desc: 'Fifth module. Build in progress — details to be announced.', tags: ['Planned'], status: 'soon', accent: 'rgba(157, 190, 141, .26)' },
@@ -405,8 +416,8 @@ var MODULES = [
     var plate = live
       ? '<div class="wpa">' +
           '<div class="sprockets"></div>' +
-          '<div class="wpa-mid"><span class="wpa-dot"></span>' +
-          '<span class="wpa-name">WPA<b>.</b></span></div>' +
+          '<div class="wpa-mid"><span class="wpa-dot" style="background:' + m.accent + '"></span>' +
+          '<span class="wpa-name">' + esc(m.mark || 'WPA') + '</span></div>' +
           '<div class="sprockets"></div>' +
         '</div>'
       : '<div class="mod-num">' + esc(m.num) + '</div>';
